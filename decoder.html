@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Расшифровщик Древних Свитков</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Uncial+Antiqua&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1a0f0a;
+            --bg-secondary: #2d1810;
+            --bg-card: #3d2317;
+            --parchment: #d4b896;
+            --parchment-dark: #b8956e;
+            --gold: #ffd700;
+            --gold-dark: #b8860b;
+            --copper: #b87333;
+            --blood-red: #8b0000;
+            --emerald: #2e8b57;
+            --sapphire: #1e3a5f;
+            --amethyst: #6b3fa0;
+            --text-primary: #f5e6d3;
+            --text-secondary: #a89070;
+            --border-wood: #5c3a21;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L30 60M0 30L60 30' stroke='%23251510' stroke-width='1'/%3E%3C/svg%3E"),
+                radial-gradient(ellipse at 30% 20%, rgba(139, 69, 19, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(107, 63, 160, 0.15) 0%, transparent 50%);
+        }
+
+        h1 {
+            font-family: 'Uncial Antiqua', cursive;
+            font-size: 2.8rem;
+            font-weight: 400;
+            color: var(--gold);
+            text-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.5),
+                2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            font-family: 'MedievalSharp', cursive;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1rem;
+            font-style: italic;
+        }
+
+        .container {
+            background: 
+                linear-gradient(135deg, var(--bg-card) 0%, #2a1a12 100%);
+            border-radius: 8px;
+            padding: 35px;
+            box-shadow: 
+                0 0 0 4px var(--border-wood),
+                0 0 0 8px var(--bg-secondary),
+                0 0 0 10px var(--gold-dark),
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                inset 0 0 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container::before {
+            content: '✦';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            color: var(--gold);
+            text-shadow: 0 0 10px var(--gold);
+        }
+
+        .container::after {
+            content: '— ⚜ —';
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            color: var(--gold-dark);
+            letter-spacing: 5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(6, 58px);
+            gap: 5px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: 
+                linear-gradient(145deg, #1a0f0a 0%, #0d0805 100%);
+            border-radius: 8px;
+            border: 3px solid var(--border-wood);
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.5),
+                0 0 15px rgba(255, 215, 0, 0.1);
+        }
+
+        .cell {
+            width: 58px;
+            height: 58px;
+            background: 
+                linear-gradient(145deg, #4a3528, #3a2518);
+            border: 2px solid var(--border-wood);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Uncial Antiqua', cursive;
+            font-size: 1.6rem;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            user-select: none;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.1),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell:hover {
+            transform: scale(1.08);
+            border-color: var(--gold);
+            box-shadow: 
+                0 0 15px rgba(255, 215, 0, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1);
+        }
+
+        .cell.unknown {
+            background: 
+                linear-gradient(145deg, #2a1a12, #1a0f0a);
+            color: var(--text-secondary);
+        }
+
+        .cell.unknown::after {
+            content: '?';
+            font-family: 'Uncial Antiqua', cursive;
+            opacity: 0.4;
+            color: var(--parchment-dark);
+        }
+
+        .cell.mine {
+            background: 
+                linear-gradient(145deg, #8b0000, #5c0000);
+            color: var(--gold);
+            border-color: #a52a2a;
+        }
+
+        .cell.mine::after {
+            content: '☠';
+            font-size: 1.8rem;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+        }
+
+        .cell.number-0 { 
+            color: transparent; 
+            background: linear-gradient(145deg, #1e3a2f, #162820);
+        }
+        .cell.number-1 { color: #7ec8e3; text-shadow: 0 0 8px rgba(126, 200, 227, 0.5); }
+        .cell.number-2 { color: #90ee90; text-shadow: 0 0 8px rgba(144, 238, 144, 0.5); }
+        .cell.number-3 { color: var(--gold); text-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
+        .cell.number-4 { color: #da70d6; text-shadow: 0 0 8px rgba(218, 112, 214, 0.5); }
+        .cell.number-5 { color: #ff6b6b; text-shadow: 0 0 8px rgba(255, 107, 107, 0.5); }
+
+        .cell .hint {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-family: 'Cinzel', serif;
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-weight: 600;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .cell .hint.safe {
+            background: linear-gradient(135deg, var(--emerald), #1e6b3e);
+            color: #fff;
+            box-shadow: 0 0 8px var(--emerald);
+        }
+
+        .cell .hint.danger {
+            background: linear-gradient(135deg, var(--blood-red), #5c0000);
+            color: var(--gold);
+            box-shadow: 0 0 8px var(--blood-red);
+        }
+
+        .cell .hint.probability {
+            background: linear-gradient(135deg, var(--gold-dark), #8b6914);
+            color: #000;
+            font-size: 0.55rem;
+            box-shadow: 0 0 8px var(--gold-dark);
+        }
+
+        @keyframes glow {
+            0%, 100% { opacity: 1; filter: brightness(1); }
+            50% { opacity: 0.85; filter: brightness(1.2); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            font-family: 'MedievalSharp', cursive;
+            padding: 14px 24px;
+            border: 2px solid var(--gold-dark);
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, #4a3528, #2d1810);
+            color: var(--gold);
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(145deg, #5a4538, #3d2820);
+            box-shadow: 
+                0 0 20px rgba(255, 215, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, var(--emerald), #1e5940);
+            color: var(--parchment);
+            border-color: #3cb371;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 0 20px rgba(46, 139, 87, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(145deg, var(--blood-red), #5c0000);
+            color: var(--parchment);
+            border-color: #a52a2a;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 0 20px rgba(139, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .legend {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border-wood);
+            width: 100%;
+        }
+
+        .legend h3 {
+            font-family: 'MedievalSharp', cursive;
+            color: var(--gold);
+            font-size: 1rem;
+            margin-bottom: 12px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-key {
+            background: var(--bg-secondary);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            border: 1px solid var(--border-wood);
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: 
+                linear-gradient(145deg, var(--bg-secondary), #1a0f0a);
+            border-radius: 6px;
+            border: 2px solid var(--border-wood);
+            color: var(--text-secondary);
+            font-family: 'MedievalSharp', cursive;
+            font-size: 0.95rem;
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .status.success {
+            background: linear-gradient(145deg, rgba(46, 139, 87, 0.3), rgba(46, 139, 87, 0.1));
+            color: #90ee90;
+            border-color: var(--emerald);
+            box-shadow: 0 0 15px rgba(46, 139, 87, 0.2);
+        }
+
+        .status.warning {
+            background: linear-gradient(145deg, rgba(184, 134, 11, 0.3), rgba(184, 134, 11, 0.1));
+            color: var(--gold);
+            border-color: var(--gold-dark);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .status.error {
+            background: linear-gradient(145deg, rgba(139, 0, 0, 0.3), rgba(139, 0, 0, 0.1));
+            color: #ff6b6b;
+            border-color: var(--blood-red);
+            box-shadow: 0 0 15px rgba(139, 0, 0, 0.2);
+        }
+
+        .corner-decor {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            color: var(--gold-dark);
+            font-size: 1.5rem;
+            opacity: 0.6;
+        }
+        .corner-decor.tl { top: 5px; left: 5px; }
+        .corner-decor.tr { top: 5px; right: 5px; transform: scaleX(-1); }
+        .corner-decor.bl { bottom: 5px; left: 5px; transform: scaleY(-1); }
+        .corner-decor.br { bottom: 5px; right: 5px; transform: scale(-1); }
+    </style>
+</head>
+<body>
+    <h1>📜 Помощник в расшифровке магических свитков</h1>
+    <p class="subtitle">Наведи перст на руну и начертай символ: цифры (0-5), M (проклятие), или ? (неведомое)</p>
+    
+    <div class="container">
+        <span class="corner-decor tl">❧</span>
+        <span class="corner-decor tr">❧</span>
+        <span class="corner-decor bl">❧</span>
+        <span class="corner-decor br">❧</span>
+        
+        <div class="grid" id="grid"></div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="solve()">🔮 Провидеть</button>
+            <button class="btn btn-secondary" onclick="applyAndSolve()">⚔️ Следующий ход</button>
+            <button class="btn btn-danger" onclick="resetGrid()">🔥 Очистить свиток</button>
+        </div>
+        
+        <div class="status" id="status">
+            Начертай состояние свитка и призови "Провидеть"
+        </div>
+        
+        <div class="legend">
+            <h3>☙ Руководство мага ❧</h3>
+            <div class="legend-items">
+                <div class="legend-item"><span class="legend-key">0-5</span> Числа</div>
+                <div class="legend-item"><span class="legend-key">M</span> Проклятие</div>
+                <div class="legend-item"><span class="legend-key">?</span> Неведомое</div>
+                <div class="legend-item"><span class="legend-key">ЛКМ</span> Цикл</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 6;
+        const MINE_COUNT = 5;
+        
+        let grid = [];
+        let hoveredCell = null;
+        let hints = [];
+
+        function initGrid() {
+            grid = [];
+            for (let i = 0; i < GRID_SIZE; i++) {
+                grid[i] = [];
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    grid[i][j] = 'unknown';
+                }
+            }
+            hints = [];
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+            
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    const value = grid[i][j];
+                    
+                    if (value === 'unknown') {
+                        cell.classList.add('unknown');
+                    } else if (value === 'mine') {
+                        cell.classList.add('mine');
+                    } else if (typeof value === 'number') {
+                        cell.classList.add(`number-${value}`);
+                        if (value > 0) {
+                            cell.textContent = value;
+                        }
+                    }
+                    
+                    const hint = hints.find(h => h.row === i && h.col === j);
+                    if (hint) {
+                        const hintEl = document.createElement('span');
+                        hintEl.className = `hint ${hint.type}`;
+                        if (hint.type === 'safe') {
+                            hintEl.textContent = '✓';
+                        } else if (hint.type === 'danger') {
+                            hintEl.textContent = '☠';
+                        } else if (hint.type === 'probability') {
+                            hintEl.textContent = `${hint.value}%`;
+                        }
+                        cell.appendChild(hintEl);
+                    }
+                    
+                    cell.addEventListener('click', () => cycleCell(i, j));
+                    cell.addEventListener('mouseenter', () => { hoveredCell = {row: i, col: j}; });
+                    cell.addEventListener('mouseleave', () => { hoveredCell = null; });
+                    
+                    gridEl.appendChild(cell);
+                }
+            }
+        }
+
+        function cycleCell(row, col) {
+            const current = grid[row][col];
+            const cycle = ['unknown', 0, 1, 2, 3, 4, 5, 'mine'];
+            const idx = cycle.indexOf(current);
+            grid[row][col] = cycle[(idx + 1) % cycle.length];
+            clearHints();
+            renderGrid();
+        }
+
+        function setCellValue(row, col, value) {
+            grid[row][col] = value;
+            clearHints();
+            renderGrid();
+        }
+
+        function clearHints() {
+            hints = [];
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!hoveredCell) return;
+            
+            const {row, col} = hoveredCell;
+            const key = e.key.toLowerCase();
+            
+            if (key >= '0' && key <= '5') {
+                setCellValue(row, col, parseInt(key));
+            } else if (key === 'm' || key === 'f') {
+                setCellValue(row, col, 'mine');
+            } else if (key === '?' || key === 'u') {
+                setCellValue(row, col, 'unknown');
+            }
+        });
+
+        function getNeighbors(row, col) {
+            const neighbors = [];
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+                        neighbors.push({row: nr, col: nc});
+                    }
+                }
+            }
+            return neighbors;
+        }
+
+        function solve() {
+            hints = [];
+            let foundSomething = false;
+            let statusMessage = '';
+            let statusClass = '';
+
+            let knownMines = 0;
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    if (grid[i][j] === 'mine') {
+                        knownMines++;
+                    }
+                }
+            }
+
+            for (let i = 0; i < GRID_SIZE; i++) {
+                for (let j = 0; j < GRID_SIZE; j++) {
+                    const value = grid[i][j];
+                    if (typeof value !== 'number' || value === 0) continue;
+                    
+                    const neighbors = getNeighbors(i, j);
+                    const unknownNeighbors = neighbors.filter(n => grid[n.row][n.col] === 'unknown');
+                    const mineNeighbors = neighbors.filter(n => grid[n.row][n.col] === 'mine');
+                    
+                    const remainingMines = value - mineNeighbors.length;
+                    
+                    if (remainingMines === unknownNeighbors.length && unknownNeighbors.length > 0) {
+                        unknownNeighbors.forEach(n => {
+                            if (!hints.find(h => h.row === n.row && h.col === n.col)) {
+                                hints.push({row: n.row, col: n.col, type: 'danger'});
+                                foundSomething = true;
+                            }
+                        });
+                    }
+                    
+                    if (remainingMines === 0 && unknownNeighbors.length > 0) {
+                        unknownNeighbors.forEach(n => {
+                            if (!hints.find(h => h.row === n.row && h.col === n.col)) {
+                                hints.push({row: n.row, col: n.col, type: 'safe'});
+                                foundSomething = true;
+                            }
+                        });
+                    }
+                }
+            }
+
+            if (!foundSomething) {
+                const unknownCells = [];
+                for (let i = 0; i < GRID_SIZE; i++) {
+                    for (let j = 0; j < GRID_SIZE; j++) {
+                        if (grid[i][j] === 'unknown') {
+                            unknownCells.push({row: i, col: j, dangerScore: 0, totalConstraints: 0});
+                        }
+                    }
+                }
+
+                for (let i = 0; i < GRID_SIZE; i++) {
+                    for (let j = 0; j < GRID_SIZE; j++) {
+                        const value = grid[i][j];
+                        if (typeof value !== 'number' || value === 0) continue;
+                        
+                        const neighbors = getNeighbors(i, j);
+                        const unknownNeighbors = neighbors.filter(n => grid[n.row][n.col] === 'unknown');
+                        const mineNeighbors = neighbors.filter(n => grid[n.row][n.col] === 'mine');
+                        
+                        if (unknownNeighbors.length === 0) continue;
+                        
+                        const remainingMines = value - mineNeighbors.length;
+                        const probability = remainingMines / unknownNeighbors.length;
+                        
+                        unknownNeighbors.forEach(n => {
+                            const cell = unknownCells.find(c => c.row === n.row && c.col === n.col);
+                            if (cell) {
+                                cell.dangerScore += probability;
+                                cell.totalConstraints++;
+                            }
+                        });
+                    }
+                }
+
+                const constrainedCells = unknownCells.filter(c => c.totalConstraints > 0);
+                
+                if (constrainedCells.length > 0) {
+                    constrainedCells.forEach(cell => {
+                        const avgProb = Math.round((cell.dangerScore / cell.totalConstraints) * 100);
+                        hints.push({
+                            row: cell.row, 
+                            col: cell.col, 
+                            type: 'probability', 
+                            value: avgProb
+                        });
+                    });
+                    foundSomething = true;
+                }
+            }
+
+            const safeCount = hints.filter(h => h.type === 'safe').length;
+            const dangerCount = hints.filter(h => h.type === 'danger').length;
+            const probCount = hints.filter(h => h.type === 'probability').length;
+
+            if (safeCount > 0 || dangerCount > 0) {
+                statusMessage = `Пророчество явлено: ${safeCount} благословенных ✓, ${dangerCount} проклятых ☠`;
+                statusClass = 'success';
+            } else if (probCount > 0) {
+                const safest = hints.reduce((min, h) => 
+                    h.type === 'probability' && h.value < min.value ? h : min, 
+                    {value: 100}
+                );
+                statusMessage = `Туман судьбы скрывает истину. Наименьший риск: ${safest.value}%`;
+                statusClass = 'warning';
+            } else {
+                statusMessage = 'Древние руны молчат. Открой больше знаков для пророчества.';
+                statusClass = 'error';
+            }
+
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = statusMessage;
+            statusEl.className = `status ${statusClass}`;
+            
+            renderGrid();
+        }
+
+        function applyAndSolve() {
+            hints.forEach(hint => {
+                if (hint.type === 'safe') {
+                    grid[hint.row][hint.col] = 0;
+                } else if (hint.type === 'danger') {
+                    grid[hint.row][hint.col] = 'mine';
+                }
+            });
+            
+            solve();
+        }
+
+        function resetGrid() {
+            initGrid();
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = 'Свиток очищен. Начертай новые знаки и призови провидение.';
+            statusEl.className = 'status';
+        }
+
+        initGrid();
+    </script>
+</body>
+</html>
